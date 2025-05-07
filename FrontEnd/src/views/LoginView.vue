@@ -23,7 +23,7 @@
             </div>
           </div>
           <p class="forgot-password-link">
-          <router-link to="/forget-password">Forgot Password?</router-link>
+          <router-link to="/forget">Forgot Password?</router-link>
         </p>
           <button type="submit" class="login-button">Login</button>
         </form>
