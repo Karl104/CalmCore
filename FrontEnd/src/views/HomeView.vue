@@ -12,18 +12,18 @@
           <span class="nav-icon">💡</span>
           <span>Inspirations</span>
         </router-link>
-        <div class="nav-item">
+        <router-link to="/library" class="nav-item">
           <span class="nav-icon">📚</span>
           <span>Library</span>
-        </div>
-        <div class="nav-item">
+        </router-link>
+        <router-link to="/history" class="nav-item">
           <span class="nav-icon">🕒</span>
           <span>History</span>
-        </div>
+        </router-link>
       </nav>
 
       <div class="sidebar-footer">
-        <div class="logout-option">
+        <div class="logout-option" @click="logout">
           <span class="nav-icon">🚪</span>
           <span>Logout</span>
         </div>
@@ -40,7 +40,7 @@
 
         <h2 class="greeting" id="greeting">Good evening</h2>
 
-        <button class="check-in-btn">Begin Your Check-In</button>
+        <router-link to="/reflection" class="check-in-btn">Begin Your Check-In</router-link>
       </div>
 
       <div class="quote-section">
@@ -65,6 +65,12 @@
 import { RouterLink } from 'vue-router';
 
 export default {
+  methods: {
+    logout() {
+      localStorage.removeItem('loggedInUser');
+      this.$router.push('/login');
+    }
+  },
   components: {
     RouterLink
   },
@@ -232,6 +238,7 @@ export default {
   font-weight: bold;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
 }
 
 .check-in-btn:hover {

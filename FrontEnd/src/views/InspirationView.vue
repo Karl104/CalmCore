@@ -12,18 +12,18 @@
           <span class="nav-icon">💡</span>
           <span>Inspirations</span>
         </div>
-        <div class="nav-item">
+        <router-link to="/library" class="nav-item">
           <span class="nav-icon">📚</span>
           <span>Library</span>
-        </div>
-        <div class="nav-item">
+        </router-link>
+        <router-link to="/history" class="nav-item">
           <span class="nav-icon">🕒</span>
           <span>History</span>
-        </div>
+        </router-link>
       </nav>
 
       <div class="sidebar-footer">
-        <div class="logout-option">
+        <div class="logout-option" @click="logout">
           <span class="nav-icon">🚪</span>
           <span>Logout</span>
         </div>
@@ -67,7 +67,7 @@
         <button class="nav-button prev-button" @click="previousQuote">
           <span class="nav-icon">◀</span>
         </button>
-        <button class="journal-button">Begin Journaling</button>
+        <button class="journal-button" @click="openJournal">Begin Journaling</button>
         <button class="nav-button next-button" @click="nextQuote">
           <span class="nav-icon">▶</span>
         </button>
@@ -77,23 +77,281 @@
         <span class="favorite-icon">☆</span>
       </button>
     </div>
+
+      <!-- Modal Structure -->
+      <div v-if="showJournal" class="modal-overlay" @click.self="closeJournal">
+        <div class="modal-content">
+          <button class="close-button" @click="closeJournal">×</button>
+          <journal-editor :quote="quotes[currentQuoteIndex]" @journal-saved="handleJournalSaved"></journal-editor>
+        </div>
       </div>
     </div>
+  </div>
 </template>
 
 <script>
 import { RouterLink } from 'vue-router';
+import JournalEditor from '@/components/Journal.vue';
 
 export default {
   components: {
-    RouterLink
+    RouterLink,
+    JournalEditor
   },
   data() {
     return {
       currentQuoteIndex: 0,
       selectedCategory: 'All Quotes',
       isDropdownOpen: false,
+      showJournal: false,
       allQuotes: [
+        // Creative Imagination
+        {
+          text: "Imagination is more important than knowledge. For knowledge is limited, whereas imagination embraces the entire world, stimulating progress, giving birth to evolution.",
+          author: "Albert Einstein",
+          category: "Creative Imagination"
+        },
+        {
+          text: "Creativity is intelligence having fun.",
+          author: "Albert Einstein",
+          category: "Creative Imagination"
+        },
+        {
+          text: "The creative adult is the child who survived.",
+          author: "Ursula K. Le Guin",
+          category: "Creative Imagination"
+        },
+        {
+          text: "You can't use up creativity. The more you use, the more you have.",
+          author: "Maya Angelou",
+          category: "Creative Imagination"
+        },
+        {
+          text: "Creativity involves breaking out of established patterns in order to look at things in a different way.",
+          author: "Edward de Bono",
+          category: "Creative Imagination"
+        },
+        // Fandom Pep-Talk
+        {
+          text: "Don't ever let anyone make you feel like you don't deserve what you want. Go for it.",
+          author: "Heath Ledger (as Patrick Verona)",
+          source: "10 Things I Hate About You",
+          category: "Fandom Pep-Talk"
+        },
+        {
+          text: "It matters not what someone is born, but what they grow to be!",
+          author: "Albus Dumbledore",
+          source: "Harry Potter and the Goblet of Fire",
+          category: "Fandom Pep-Talk"
+        },
+        {
+          text: "Why do we fall? So we can learn to pick ourselves up.",
+          author: "Alfred Pennyworth",
+          source: "Batman Begins",
+          category: "Fandom Pep-Talk"
+        },
+        {
+          text: "Even the smallest person can change the course of the future.",
+          author: "Galadriel",
+          source: "The Lord of the Rings: The Fellowship of the Ring",
+          category: "Fandom Pep-Talk"
+        },
+        {
+          text: "Do or do not. There is no try.",
+          author: "Yoda",
+          source: "Star Wars: The Empire Strikes Back",
+          category: "Fandom Pep-Talk"
+        },
+        // Feminist Power
+        {
+          text: "Feminism isn't about making women stronger. Women are already strong. It's about changing the way the world perceives that strength.",
+          author: "G.D. Anderson",
+          category: "Feminist Power"
+        },
+        {
+          text: "I raise up my voice—not so that I can shout, but so that those without a voice can be heard... We cannot all succeed when half of us are held back.",
+          author: "Malala Yousafzai",
+          category: "Feminist Power"
+        },
+        {
+          text: "Women belong in all places where decisions are being made... It shouldn't be that women are the exception.",
+          author: "Ruth Bader Ginsburg",
+          category: "Feminist Power"
+        },
+        {
+          text: "The question isn't who's going to let me; it's who is going to stop me.",
+          author: "Ayn Rand",
+          category: "Feminist Power"
+        },
+        {
+          text: "No woman should be told she can't make decisions about her own body. When women's rights are under attack, we fight back.",
+          author: "Kamala Harris",
+          category: "Feminist Power"
+        },
+        // Inner Peace
+        {
+          text: "Peace comes from within. Do not seek it without.",
+          author: "Buddha",
+          category: "Inner Peace"
+        },
+        {
+          text: "Do not let the behavior of others destroy your inner peace.",
+          author: "Dalai Lama",
+          category: "Inner Peace"
+        },
+        {
+          text: "Inner peace begins the moment you choose not to allow another person or event to control your emotions.",
+          author: "Pema Chödrön",
+          category: "Inner Peace"
+        },
+        {
+          text: "The life of inner peace, being harmonious and without stress, is the easiest type of existence.",
+          author: "Norman Vincent Peale",
+          category: "Inner Peace"
+        },
+        {
+          text: "Within you, there is a stillness and a sanctuary to which you can retreat at any time and be yourself.",
+          author: "Hermann Hesse",
+          category: "Inner Peace"
+        },
+        // Loving Heart
+        {
+          text: "Love and compassion are necessities, not luxuries. Without them, humanity cannot survive.",
+          author: "Dalai Lama",
+          category: "Loving Heart"
+        },
+        {
+          text: "The best and most beautiful things in this world cannot be seen or even heard, but must be felt with the heart.",
+          author: "Helen Keller",
+          category: "Loving Heart"
+        },
+        {
+          text: "Keep love in your heart. A life without it is like a sunless garden when the flowers are dead.",
+          author: "Oscar Wilde",
+          category: "Loving Heart"
+        },
+        {
+          text: "Where there is love there is life.",
+          author: "Mahatma Gandhi",
+          category: "Loving Heart"
+        },
+        {
+          text: "Your task is not to seek for love, but merely to seek and find all the barriers within yourself that you have built against it.",
+          author: "Rumi",
+          category: "Loving Heart"
+        },
+        // Overcoming Fear
+        {
+          text: "The brave man is not he who does not feel afraid, but he who conquers that fear.",
+          author: "Nelson Mandela",
+          category: "Overcoming Fear"
+        },
+        {
+          text: "Fear is the path to the dark side. Fear leads to anger. Anger leads to hate. Hate leads to suffering.",
+          author: "Yoda",
+          source: "Star Wars: The Phantom Menace",
+          category: "Overcoming Fear"
+        },
+        {
+          text: "I learned that courage was not the absence of fear, but the triumph over it.",
+          author: "Nelson Mandela",
+          category: "Overcoming Fear"
+        },
+        {
+          text: "Do the thing you fear and the death of fear is certain.",
+          author: "Ralph Waldo Emerson",
+          category: "Overcoming Fear"
+        },
+        {
+          text: "You gain strength, courage, and confidence by every experience in which you really stop to look fear in the face.",
+          author: "Eleanor Roosevelt",
+          category: "Overcoming Fear"
+        },
+        // Productivity Boost
+        {
+          text: "The key is not to prioritize what's on your schedule, but to schedule your priorities.",
+          author: "Stephen Covey",
+          category: "Productivity Boost"
+        },
+        {
+          text: "Productivity is never an accident. It is always the result of a commitment to excellence, intelligent planning, and focused effort.",
+          author: "Paul J. Meyer",
+          category: "Productivity Boost"
+        },
+        {
+          text: "Focus on being productive instead of busy.",
+          author: "Tim Ferriss",
+          category: "Productivity Boost"
+        },
+        {
+          text: "Ordinary people think merely of spending time, great people think of using it.",
+          author: "Arthur Schopenhauer",
+          category: "Productivity Boost"
+        },
+        {
+          text: "Until we can manage time, we can manage nothing else.",
+          author: "Peter Drucker",
+          category: "Productivity Boost"
+        },
+        // Spiritual Path
+        {
+          text: "The spiritual journey is the unlearning of fear and the acceptance of love.",
+          author: "Marianne Williamson",
+          category: "Spiritual Path"
+        },
+        {
+          text: "You have to grow from the inside out. None can teach you, none can make you spiritual. There is no other teacher but your own soul.",
+          author: "Swami Vivekananda",
+          category: "Spiritual Path"
+        },
+        {
+          text: "Spirituality is not about being fixed; it is about God being present in the mess of our unfixedness.",
+          author: "Michael Yaconelli",
+          category: "Spiritual Path"
+        },
+        {
+          text: "The path is not in the sky. The path is in the heart.",
+          author: "Buddha",
+          category: "Spiritual Path"
+        },
+        {
+          text: "Just as a candle cannot burn without fire, men cannot live without a spiritual life.",
+          author: "Buddha",
+          category: "Spiritual Path"
+        },
+        // Uplifting Gratitude
+        {
+          text: "Gratitude turns what we have into enough.",
+          author: "Anonymous",
+          category: "Uplifting Gratitude"
+        },
+        {
+          text: "Acknowledging the good that you already have in your life is the foundation for all abundance.",
+          author: "Eckhart Tolle",
+          category: "Uplifting Gratitude"
+        },
+        {
+          text: "Gratitude makes sense of our past, brings peace for today, and creates a vision for tomorrow.",
+          author: "Melody Beattie",
+          category: "Uplifting Gratitude"
+        },
+        {
+          text: "Wear gratitude like a cloak, and it will feed every corner of your life.",
+          author: "Rumi",
+          category: "Uplifting Gratitude"
+        },
+        {
+          text: "Let us be grateful to the people who make us happy; they are the charming gardeners who make our souls blossom.",
+          author: "Marcel Proust",
+          category: "Uplifting Gratitude"
+        },
+        // Stoic Wisdom (Existing)
+        {
+          text: "We don't get to choose what happens to us, but we can always choose how we feel about it. And why on earth would you choose to feel anything but good?",
+          author: "Ryan Holiday",
+          source: "The Obstacle Is the Way",
+          category: "Stoic Wisdom"
+        },
         {
           text: "We don't get to choose what happens to us, but we can always choose how we feel about it. And why on earth would you choose to feel anything but good?",
           author: "Ryan Holiday",
@@ -158,8 +416,33 @@ export default {
           text: "Patience is bitter, but  its fruit is sweet.",
           author: "Aristotle",
           category: "Push Forward"
+        },
+        // Push Forward (Adding more)
+        {
+          text: "Perseverance is failing 19 times and succeeding the 20th.",
+          author: "Julie Andrews",
+          category: "Push Forward"
+        },
+        {
+          text: "It does not matter how slowly you go as long as you do not stop.",
+          author: "Confucius",
+          category: "Push Forward"
+        },
+        {
+          text: "Our greatest glory is not in never failing, but in rising up every time we fail.",
+          author: "Ralph Waldo Emerson",
+          category: "Push Forward"
+        },
+        {
+          text: "Fall seven times, stand up eight.",
+          author: "Japanese Proverb",
+          category: "Push Forward"
+        },
+        {
+          text: "The only way to do great work is to love what you do.",
+          author: "Steve Jobs",
+          category: "Push Forward"
         }
-
       ]
     };
   },
@@ -194,6 +477,16 @@ export default {
       } else {
         this.currentQuoteIndex = this.quotes.length - 1; // Loop to the last quote
       }
+    },
+    openJournal() {
+      this.showJournal = true;
+    },
+    closeJournal() {
+      this.showJournal = false;
+    },
+    handleJournalSaved() {
+      this.closeJournal(); // Close the modal
+      this.$router.push('/history'); // Navigate to history page
     }
   }
 };
@@ -472,4 +765,53 @@ export default {
 .favorite-button:hover .favorite-icon {
   color: #ffc107;
 }
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  position: relative;
+  width: 90%;
+  max-width: 700px; /* Adjust as needed */
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #aaa;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+/* Ensure Journal Editor styles work well within the modal */
+.modal-content .journal-editor {
+  margin-top: 1rem; /* Add some space below the close button */
+}
+
 </style>
