@@ -50,7 +50,7 @@ const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
 
-const handleLogin = () => {
+const handleLogin = async () => {
   // Validate for whitespace in email
   if (/\s/.test(email.value)) {
     alert('Email must not contain whitespace.');
@@ -81,17 +81,32 @@ const handleLogin = () => {
     return;
   }
 
-  const users = JSON.parse(localStorage.getItem('users')) || [];
-  const foundUser = users.find(user => user.email === email.value && user.password === password.value);
+  try {
+    const response = await fetch('http://localhost:3000/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'login',
+        email: email.value,
+        password: password.value
+      })
+    });
 
-  if (foundUser) {
-    console.log('Login successful for:', email.value);
-    // Store login state if necessary, e.g., in localStorage or a global store
-    localStorage.setItem('loggedInUser', JSON.stringify(foundUser));
-    router.push('/'); // Redirect to home page or dashboard
-  } else {
-    console.log('Login failed for:', email.value);
-    alert('Invalid email or password. Please try again or register.');
+    const data = await response.json();
+
+    if (data.status === 'success') {
+      console.log('Login successful for:', email.value);
+      localStorage.setItem('loggedInUser', JSON.stringify(data.user));
+      router.push('/'); // Redirect to home page or dashboard
+    } else {
+      console.log('Login failed for:', email.value);
+      alert(data.message || 'Invalid email or password. Please try again or register.');
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    alert('An error occurred during login. Please try again.');
   }
 };
 </script>

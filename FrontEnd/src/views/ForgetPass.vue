@@ -21,7 +21,7 @@ import { useRouter } from 'vue-router';
 const email = ref('');
 const router = useRouter();
 
-const requestPasswordReset = () => {
+const requestPasswordReset = async () => {
   if (/\s/.test(email.value)) {
     alert('Email must not contain whitespace.');
     return;
@@ -31,10 +31,31 @@ const requestPasswordReset = () => {
     alert('Please enter a valid email address.');
     return;
   }
-  console.log('Password reset requested for:', email.value);
-  // Here you would typically call an API to send a password reset link
-  alert('If an account with that email exists, a password reset link has been sent.');
-  router.push('/login'); // Redirect to login or a confirmation page
+
+  try {
+    const response = await fetch('http://localhost:3000/api/auth/forgot-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'forgot_password',
+        email: email.value
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.status === 'success') {
+      alert('If an account with that email exists, a password reset link has been sent.');
+      router.push('/login');
+    } else {
+      alert(data.message || 'An error occurred. Please try again.');
+    }
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    alert('An error occurred. Please try again.');
+  }
 };
 </script>
 

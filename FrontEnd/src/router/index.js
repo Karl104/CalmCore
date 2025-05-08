@@ -52,13 +52,18 @@ const router = createRouter({
       path: '/forget',
       name: 'forget-password',
       component: () => import('../views/ForgetPass.vue')
-    }
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('../views/AdminView.vue')
+    },
   ],
 })
 
 // Global navigation guard
 router.beforeEach((to, from, next) => {
-  const publicPages = ['/login', '/register', '/forget']; // Paths that don't require authentication
+  const publicPages = ['/login', '/register', '/forget','/admin']; // Paths that don't require authentication
   const authRequired = !publicPages.includes(to.path);
   const loggedIn = localStorage.getItem('userToken'); // Check if user token exists
 

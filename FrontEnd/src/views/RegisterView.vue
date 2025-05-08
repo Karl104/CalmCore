@@ -55,36 +55,84 @@ const isPasswordValid = computed(() => {
          !/\s/.test(value);
 });
 
-const register = () => {
+const register = async () => {
   // Email whitespace validation
-  if (/s/.test(email.value)) {
-    alert('Email must not contain whitespace.');
-    return;
-  }
-
-  // Email whitespace validation
-  if (/s/.test(email.value)) {
+  if (/\s/.test(email.value)) {
     alert('Email must not contain whitespace.');
     return;
   }
 
   // Password validation
   if (!isPasswordValid.value) {
-    // Optionally, you can still show an alert here if the form is submitted with invalid password,
-    // or rely on the visual feedback provided by the password-requirements paragraph.
-    // For now, we'll prevent registration if password is not valid without an alert.
+    alert('Password must be at least 8 characters long and contain uppercase, lowercase, and numbers.');
     return;
   }
 
-  // Store user credentials in localStorage
-  const users = JSON.parse(localStorage.getItem('users')) || [];
-  users.push({ email: email.value, password: password.value, name: name.value });
-  localStorage.setItem('users', JSON.stringify(users));
+  try {
+    console.log('Attempting to register with:', { 
+      email: email.value, 
+      name: name.value,
+      // Log password length for debugging (never log actual passwords)
+      passwordLength: password.value.length 
+    });
+    
+    // Log the full API URL
+    const apiUrl = 'http://localhost:3000/api/auth/register';
+    console.log('Sending request to:', apiUrl);
+    
+    const payload = {
+      action: 'register',
+      email: email.value,
+      password: password.value,
+      name: name.value
+    };
+    console.log('Request payload:', { ...payload, password: '******' });
 
-  console.log('Registering:', { name: name.value, email: email.value });
-  // Redirect to login page
-  router.push('/login');
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    });
+
+    console.log('Response status:', response.status);
+    console.log('Response ok:', response.ok);
+    
+    // Try to get the response text first to debug any malformed JSON
+    const responseText = await response.text();
+    console.log('Raw response:', responseText);
+    
+    let data;
+    try {
+      // Then parse it as JSON
+      data = JSON.parse(responseText);
+      console.log('Parsed response data:', data);
+    } catch (jsonError) {
+      console.error('Failed to parse JSON response:', jsonError);
+      alert('Server returned invalid JSON. Check the console for the raw response.');
+      return;
+    }
+
+    if (data.status === 'success') {
+      console.log('Registration successful for:', email.value);
+      alert('Registration successful! Please login with your credentials.');
+      router.push('/login');
+    } else {
+      alert(`Registration failed: ${data.message}`);
+    }
+  } catch (error) {
+    console.error('Registration error:', error);
+    
+    // More detailed error information
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      alert('Network error: Could not connect to the server. Please check if your backend is running and accessible.');
+    } else {
+      alert(`An error occurred during registration: ${error.message}`);
+    }
+  }
 };
+
 </script>
 
 <style scoped>
