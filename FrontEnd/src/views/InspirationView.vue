@@ -487,6 +487,12 @@ export default {
     handleJournalSaved() {
       this.closeJournal(); // Close the modal
       this.$router.push('/history'); // Navigate to history page
+    },  // Added comma here
+    logout() {
+      if (confirm('Are you sure you want to log out?')) {
+        localStorage.removeItem('loggedInUser');
+        this.$router.push('/login');
+      }
     }
   }
 };

@@ -1,8 +1,7 @@
 <template>
   <div class="dashboard">
-    <div class="sidebar">
+    <div v-if="sidebarVisible" class="sidebar">
       <h1 class="logo">CalmCore</h1>
-
       <nav class="nav-menu">
         <div class="nav-item active">
           <span class="nav-icon">⚪</span>
@@ -21,7 +20,6 @@
           <span>History</span>
         </router-link>
       </nav>
-
       <div class="sidebar-footer">
         <div class="logout-option" @click="logout">
           <span class="nav-icon">🚪</span>
@@ -29,25 +27,26 @@
         </div>
       </div>
     </div>
-
+    <button class="sidebar-toggle" @click="toggleSidebar">
+      <div class="hamburger" :class="{ 'is-active': sidebarVisible }">
+        <span class="line"></span>
+        <span class="line"></span>
+        <span class="line"></span>
+      </div>
+    </button>
     <div class="main-content">
-      <div class="date-display" id="current-date"></div>
-
+      <div class="date-display">{{ currentDate }}</div>
       <div class="content-area">
         <div class="book-icon">
           <img src="@/assets/gif.gif" alt="Animation" width="750" height="750">
         </div>
-
-        <h2 class="greeting" id="greeting">Good evening</h2>
-
+        <h2 class="greeting">{{ greeting }}</h2>
         <router-link to="/reflection" class="check-in-btn">Begin Your Check-In</router-link>
       </div>
-
       <div class="quote-section">
         <h3>Quote of the Day</h3>
         <p class="quote"><i>You have power over your mind not outside events. Realize this, and you will find strength.</i></p>
         <p class="quote-author"> Marcus Aurelius</p>
-
         <div class="quote-actions">
           <button class="icon-btn star-btn">
             <span class="btn-icon">★</span>
@@ -65,38 +64,49 @@
 import { RouterLink } from 'vue-router';
 
 export default {
+  data() {
+    return {
+      sidebarVisible: true,
+      currentDate: '',
+      greeting: ''
+    };
+  },
   methods: {
+    toggleSidebar() {
+      this.sidebarVisible = !this.sidebarVisible;
+    },
     logout() {
-      localStorage.removeItem('userToken');
-      this.$router.push('/login');
-    }
-  },
-  components: {
-    RouterLink
-  },
-  mounted() {
-
-    function getCurrentDate() {
+      if (confirm('Are you sure you want to log out?')) {
+        localStorage.removeItem('userToken');
+        this.$router.push('/login');
+      }
+    },
+    updateDateTime() {
       const now = new Date();
       const day = now.getDate();
       const month = now.toLocaleDateString('en-US', { month: 'long' });
       const year = now.getFullYear();
       const weekday = now.toLocaleDateString('en-US', { weekday: 'long' });
+      this.currentDate = `${weekday}, ${month} ${day}, ${year}`;
 
-      return `${weekday}, ${month} ${day}, ${year}`;
+      const hour = now.getHours();
+      if (hour < 12) this.greeting = 'Good morning';
+      else if (hour < 18) this.greeting = 'Good afternoon';
+      else this.greeting = 'Good evening';
     }
-
-
-    function getGreeting() {
-      const hour = new Date().getHours();
-      if (hour < 12) return 'Good morning';
-      if (hour < 18) return 'Good afternoon';
-      return 'Good evening';
+  },
+  mounted() {
+    this.updateDateTime();
+    // Update every minute
+    this.timer = setInterval(this.updateDateTime, 60000);
+  },
+  beforeDestroy() {
+    if (this.timer) {
+      clearInterval(this.timer);
     }
-
-
-    document.getElementById('current-date').textContent = getCurrentDate();
-    document.getElementById('greeting').textContent = getGreeting();
+  },
+  components: {
+    RouterLink
   }
 }
 </script>
@@ -116,6 +126,7 @@ export default {
   color: black;
   font-family: 'Quicksand', sans-serif;
   overflow-x: hidden;
+  position: relative;
 }
 
 .sidebar {
@@ -145,7 +156,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 0.8rem 1rem;
-  border-radius: 8px;
+  border-radius: 2px;
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s;
   color: #a0aec0;
@@ -306,4 +317,134 @@ export default {
 .pencil-btn .btn-icon {
   color: #121a2e;
 }
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #151515;
+  color: white;
+  width: 100%;
+  position: relative;
+  z-index: 1002;
+}
+
+.logo-header {
+  font-size: 1.5rem;
+  margin: 0;
+  color: white;
+  margin-left: 1rem;
+}
+
+.date-display {
+  margin-left: auto;
+  font-size: 1rem;
+  color: white;
+}
+
+.sidebar-dropdown {
+  position: absolute;
+  top: 70px; /* Adjust based on your top-bar height */
+  left: 0;
+  width: 300px;
+  background-color: #151515;
+  padding: 1rem;
+  border-radius: 0 0 5px 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  animation: slideDown 0.3s ease-in-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sidebar-toggle {
+  background: #151515;
+  color: white;
+  border: none;
+  border-radius: 0px;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: 'Quicksand', sans-serif;
+  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 35px;
+  height: 35px;
+}
+
+.main-content {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  color: black;
+  min-height: calc(100vh - 70px); /* Adjust based on your top-bar height */
+}
+
+.sidebar-toggle:hover {
+  background: #333333; /* Darker black on hover */
+}
+
+/* Hamburger Menu Styles */
+.hamburger {
+  width: 18px; /* Smaller hamburger */
+  height: 14px; /* Smaller hamburger */
+  position: relative;
+  transform: rotate(0deg);
+  transition: .5s ease-in-out;
+  cursor: pointer;
+}
+
+.hamburger .line {
+  display: block;
+  position: absolute;
+  height: 2px;
+  width: 100%;
+  background: white;
+  border-radius: 9px;
+  opacity: 1;
+  left: 0;
+  transform: rotate(0deg);
+  transition: .25s ease-in-out;
+}
+
+.hamburger .line:nth-child(1) {
+  top: 0px;
+}
+
+.hamburger .line:nth-child(2) {
+  top: 7px;
+}
+
+.hamburger .line:nth-child(3) {
+  top: 14px;
+}
+
+/* X transformation when active */
+.hamburger.is-active .line:nth-child(1) {
+  top: 7px;
+  transform: rotate(45deg);
+}
+
+.hamburger.is-active .line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.is-active .line:nth-child(3) {
+  top: 7px;
+  transform: rotate(-45deg);
+}
 </style>
+
+

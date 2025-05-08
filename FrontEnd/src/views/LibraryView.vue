@@ -114,8 +114,10 @@ export default {
   },
   methods: {
     logout() {
-      localStorage.removeItem('loggedInUser');
-      this.$router.push('/login');
+      if (confirm('Are you sure you want to log out?')) {
+        localStorage.removeItem('loggedInUser');
+        this.$router.push('/login');
+      }
     },
     selectCategory(categoryName) {
       this.selectedCategory = categoryName;

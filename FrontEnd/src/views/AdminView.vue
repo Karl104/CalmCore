@@ -1,157 +1,122 @@
 <template>
-  <div class="admin-container">
-    <!-- Login Form -->
-    <div v-if="!isAuthenticated" class="login-form">
-      <h2>Admin Login</h2>
-      <div v-if="error" class="error-alert">
-        {{ error }}
+  <div class="admin-layout">
+    <nav class="admin-nav">
+      <div class="admin-nav-header">
+        <h1>CalmCore Admin</h1>
       </div>
-      <form @submit.prevent="handleLogin">
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            v-model="loginCredentials.email"
-            required
-          />
-        </div>
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            v-model="loginCredentials.password"
-            required
-          />
-        </div>
-        <button type="submit" class="btn-primary">Login</button>
-      </form>
-    </div>
-
-    <!-- Admin Dashboard -->
-    <div v-else class="dashboard">
-      <div class="dashboard-header">
-        <h2>Admin Dashboard</h2>
-        <button @click="handleLogout" class="btn-danger">Logout</button>
+      <div class="admin-nav-footer">
+        <button @click="handleLogout" class="btn-logout">Logout</button>
       </div>
+    </nav>
 
-      <!-- Admin Directory Section -->
-      <div class="section">
-        <h3>Admin Directory</h3>
-        <div class="admin-info">
-          <div class="info-card">
-            <h4>Admin Information</h4>
-            <div class="info-item">
-              <span class="label">Email:</span>
-              <span class="value">admin@calmcore.com</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Role:</span>
-              <span class="value">Super Administrator</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Last Login:</span>
-              <span class="value">{{ lastLoginTime }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Status:</span>
-              <span class="value status-active">Active</span>
-            </div>
-          </div>
-          <div class="admin-stats">
-            <div class="stat-card">
-              <h4>Total Users</h4>
-              <div class="stat-value">{{ users.length }}</div>
-            </div>
-            <div class="stat-card">
-              <h4>Active Sessions</h4>
-              <div class="stat-value">{{ activeSessions }}</div>
-            </div>
-            <div class="stat-card">
-              <h4>Total Logins Today</h4>
-              <div class="stat-value">{{ todayLogins }}</div>
-            </div>
-          </div>
+    <div class="admin-content">
+      <!-- User Management Table -->
+      <div class="admin-section">
+        <div class="section-header">
+          <h3>User Management</h3>
+          <button @click="openAddDialog = true" class="btn-primary">Add User</button>
+        </div>
+        <div class="table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Created At</th>
+                <th>Last Login</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in filteredUsers" :key="user.id">
+                <td>{{ user.email }}</td>
+                <td>{{ user.name }}</td>
+                <td><span :class="['role-badge', user.role]">{{ user.role }}</span></td>
+                <td>{{ formatDate(user.created_at) }}</td>
+                <td>{{ user.last_login ? formatDate(user.last_login) : 'Never' }}</td>
+                <td>
+                  <button @click="editUser(user)" class="btn-secondary">Edit</button>
+                  <button @click="handleDeleteUser(user.id)" class="btn-danger">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- User Management Section -->
-      <div class="section">
-        <h3>User Management</h3>
-        <button @click="openDialog = true" class="btn-primary">Add New User</button>
-
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Role</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in users" :key="user.id">
-              <td>{{ user.username }}</td>
-              <td>{{ user.role }}</td>
-              <td>
-                <button @click="handleDeleteUser(user.id)" class="btn-danger">
-                  Delete
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Login History Table -->
+      <div class="admin-section">
+        <div class="section-header">
+          <h3>Login History</h3>
+        </div>
+        <div class="table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Action</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(history, index) in loginHistory" :key="index">
+                <td>{{ history.email }}</td>
+                <td>{{ history.action }}</td>
+                <td>{{ formatDate(history.timestamp) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <!-- Login History Section -->
-      <div class="section">
-        <h3>Login History</h3>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Action</th>
-              <th>Timestamp</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(history, index) in loginHistory" :key="index">
-              <td>{{ history.username }}</td>
-              <td>{{ history.action }}</td>
-              <td>{{ history.timestamp }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Add User Dialog -->
-      <div v-if="openDialog" class="dialog-overlay">
+      <!-- Add/Edit User Dialog -->
+      <div v-if="openAddDialog" class="dialog-overlay">
         <div class="dialog">
-          <h3>Add New User</h3>
+          <h3>{{ editingUser ? 'Edit User' : 'Add New User' }}</h3>
           <div v-if="error" class="error-alert">
             {{ error }}
           </div>
           <div class="form-group">
-            <label for="new-username">Username</label>
+            <label for="email">Email</label>
             <input
-              type="text"
-              id="new-username"
-              v-model="newUser.username"
+              type="email"
+              id="email"
+              v-model="newUser.email"
               required
             />
           </div>
           <div class="form-group">
-            <label for="new-password">Password</label>
+            <label for="name">Name</label>
             <input
-              type="password"
-              id="new-password"
-              v-model="newUser.password"
+              type="text"
+              id="name"
+              v-model="newUser.name"
               required
             />
           </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              v-model="newUser.password"
+              :required="!editingUser"
+              :placeholder="editingUser ? 'Leave blank to keep unchanged' : ''"
+            />
+          </div>
+          <div class="form-group">
+            <label for="role">Role</label>
+            <select id="role" v-model="newUser.role">
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
           <div class="dialog-actions">
-            <button @click="openDialog = false" class="btn-secondary">Cancel</button>
-            <button @click="handleAddUser" class="btn-primary">Add User</button>
+            <button @click="openAddDialog = false" class="btn-secondary">Cancel</button>
+            <button @click="handleUserAction" class="btn-primary">
+              {{ editingUser ? 'Update' : 'Add' }} User
+            </button>
           </div>
         </div>
       </div>
@@ -166,188 +131,296 @@ export default {
     return {
       users: [],
       loginHistory: [],
-      openDialog: false,
+      openAddDialog: false,
+      editingUser: null,
       newUser: {
-        username: '',
+        email: '',
+        name: '',
         password: '',
         role: 'user'
       },
-      error: '',
-      isAuthenticated: false,
-      loginCredentials: {
-        email: '',
-        password: ''
-      },
-      lastLoginTime: '',
-      activeSessions: 0,
-      todayLogins: 0
+      error: ''
+    }
+  },
+  computed: {
+    filteredUsers() {
+      return this.users.filter(user => user.role === 'user')
     }
   },
   created() {
-    // Check if admin is already logged in
-    const adminLoggedIn = localStorage.getItem('adminLoggedIn')
-    if (adminLoggedIn === 'true') {
-      this.isAuthenticated = true
-      this.updateAdminStats()
-    }
+    this.fetchUsers()
+    this.fetchLoginHistory()
   },
   methods: {
-    updateAdminStats() {
-      // Set last login time
-      this.lastLoginTime = new Date().toLocaleString()
-      
-      // Count active sessions (users with loggedInUser in localStorage)
-      const activeUsers = Object.keys(localStorage).filter(key => key.startsWith('loggedInUser'))
-      this.activeSessions = activeUsers.length
-
-      // Count today's logins
-      const today = new Date().toDateString()
-      this.todayLogins = this.loginHistory.filter(history => 
-        new Date(history.timestamp).toDateString() === today
-      ).length
+    formatDate(dateString) {
+      return new Date(dateString).toLocaleString()
     },
-    handleLogin() {
-      // Hardcoded admin email account
-      if (
-        this.loginCredentials.email === 'admin@calmcore.com' && 
-        this.loginCredentials.password === 'Admin@123'
-      ) {
-        this.isAuthenticated = true
-        localStorage.setItem('adminLoggedIn', 'true')
-        this.addLoginHistory('admin@calmcore.com', 'login')
-      } else {
-        this.error = 'Invalid credentials'
+    async fetchUsers() {
+      try {
+        const response = await fetch('http://localhost:3000/api/users', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+          }
+        })
+        const data = await response.json()
+        this.users = data.users
+      } catch (error) {
+        console.error('Error fetching users:', error)
+        this.error = 'Failed to fetch users'
+      }
+    },
+    async fetchLoginHistory() {
+      try {
+        const response = await fetch('http://localhost:3000/api/login-history', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+          }
+        })
+        const data = await response.json()
+        this.loginHistory = data.history
+      } catch (error) {
+        console.error('Error fetching login history:', error)
+      }
+    },
+    editUser(user) {
+      this.editingUser = user
+      this.newUser = {
+        email: user.email,
+        name: user.name,
+        password: '',
+        role: user.role
+      }
+      this.openAddDialog = true
+    },
+    async handleUserAction() {
+      if (!this.newUser.email || !this.newUser.name || (!this.editingUser && !this.newUser.password)) {
+        this.error = 'Please fill in all required fields'
+        return
+      }
+
+      try {
+        const url = this.editingUser
+          ? `http://localhost:3000/api/users/${this.editingUser.id}`
+          : 'http://localhost:3000/api/users'
+        
+        const userData = {
+          email: this.newUser.email,
+          name: this.newUser.name,
+          role: this.newUser.role
+        }
+
+        if (this.newUser.password) {
+          userData.password = this.newUser.password
+        }
+
+        const response = await fetch(url, {
+          method: this.editingUser ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+          },
+          body: JSON.stringify(userData)
+        })
+
+        if (response.ok) {
+          this.openAddDialog = false
+          this.editingUser = null
+          this.newUser = {
+            email: '',
+            name: '',
+            password: '',
+            role: 'user'
+          }
+          this.fetchUsers()
+        } else {
+          const data = await response.json()
+          this.error = data.message || 'Failed to process user'
+        }
+      } catch (error) {
+        console.error('Error processing user:', error)
+        this.error = 'An error occurred while processing the user'
+      }
+    },
+    async handleDeleteUser(userId) {
+      if (confirm('Are you sure you want to delete this user?')) {
+        try {
+          const response = await fetch(`http://localhost:3000/api/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+            }
+          })
+
+          if (response.ok) {
+            this.users = this.users.filter(user => user.id !== userId)
+          } else {
+            const data = await response.json()
+            this.error = data.message || 'Failed to delete user'
+          }
+        } catch (error) {
+          console.error('Error deleting user:', error)
+          this.error = 'An error occurred while deleting the user'
+        }
       }
     },
     handleLogout() {
-      this.isAuthenticated = false
-      localStorage.removeItem('adminLoggedIn')
-      this.addLoginHistory('admin', 'logout')
-    },
-    addLoginHistory(username, action) {
-      const history = {
-        username,
-        action,
-        timestamp: new Date().toLocaleString()
+      if (confirm('Are you sure you want to log out?')) {
+        localStorage.removeItem('adminLoggedIn')
+        localStorage.removeItem('userToken')
+        this.$router.push('/login')
       }
-      this.loginHistory.unshift(history)
-    },
-    handleAddUser() {
-      if (!this.newUser.username || !this.newUser.password) {
-        this.error = 'Please fill in all fields'
-        return
-      }
-      this.users.push({
-        ...this.newUser,
-        id: Date.now()
-      })
-      this.newUser = {
-        username: '',
-        password: '',
-        role: 'user'
-      }
-      this.openDialog = false
-      this.error = ''
-    },
-    handleDeleteUser(userId) {
-      this.users = this.users.filter(user => user.id !== userId)
     }
   }
 }
 </script>
 
 <style scoped>
-.admin-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+.admin-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  min-height: 100vh;
 }
 
-.login-form {
-  max-width: 400px;
-  margin: 40px auto;
+.admin-nav {
+  background: #1a237e;
+  color: white;
   padding: 20px;
-  border: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-nav-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-nav-footer {
+  margin-top: auto;
+}
+
+.btn-logout {
+  width: 100%;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.admin-content {
+  padding: 30px;
+  background: #f5f5f5;
+}
+
+.admin-section {
+  background: white;
   border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  overflow: hidden;
 }
 
-.dashboard-header {
+.section-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
 }
 
-.section {
-  margin-bottom: 30px;
+.section-header h3 {
+  margin: 0;
+  color: #1a237e;
 }
 
-.form-group {
-  margin-bottom: 15px;
+.table-container {
+  overflow-x: auto;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.data-table {
+.admin-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
 }
 
-.data-table th,
-.data-table td {
-  padding: 12px;
+.admin-table th,
+.admin-table td {
+  padding: 12px 20px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #eee;
 }
 
-.data-table th {
-  background-color: #f5f5f5;
+.admin-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #1a237e;
+}
+
+.role-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.role-badge.admin {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.role-badge.user {
+  background: #f5f5f5;
+  color: #616161;
 }
 
 .btn-primary {
-  background-color: #4CAF50;
+  background: #1a237e;
   color: white;
-  padding: 8px 16px;
   border: none;
+  padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
+  transition: background 0.3s;
 }
 
-.btn-danger {
-  background-color: #f44336;
-  color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.btn-primary:hover {
+  background: #283593;
 }
 
 .btn-secondary {
-  background-color: #9e9e9e;
-  color: white;
-  padding: 8px 16px;
+  background: #e3f2fd;
+  color: #1565c0;
   border: none;
+  padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
+  margin-right: 8px;
+  transition: background 0.3s;
 }
 
-.error-alert {
-  background-color: #ffebee;
+.btn-secondary:hover {
+  background: #bbdefb;
+}
+
+.btn-danger {
+  background: #ffebee;
   color: #c62828;
-  padding: 10px;
+  border: none;
+  padding: 8px 16px;
   border-radius: 4px;
-  margin-bottom: 15px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-danger:hover {
+  background: #ffcdd2;
 }
 
 .dialog-overlay {
@@ -356,112 +429,98 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 }
 
 .dialog {
-  background-color: white;
-  padding: 20px;
+  background: white;
   border-radius: 8px;
-  min-width: 400px;
+  padding: 24px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dialog h3 {
+  margin: 0 0 20px;
+  color: #1a237e;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #1a237e;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #1a237e;
+  outline: none;
+}
+
+.error-alert {
+  background: #ffebee;
+  color: #c62828;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
 }
 
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-button {
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-.admin-info {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.info-card {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.info-card h4 {
-  margin-bottom: 15px;
-  color: #333;
-  font-size: 1.1rem;
-}
-
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.info-item:last-child {
-  border-bottom: none;
-}
-
-.label {
-  color: #666;
-  font-weight: 500;
-}
-
-.value {
-  color: #333;
-}
-
-.status-active {
-  color: #4CAF50;
-  font-weight: 500;
-}
-
-.admin-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-}
-
-.stat-card {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.stat-card h4 {
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 10px;
-}
-
-.stat-value {
-  color: #333;
-  font-size: 1.8rem;
-  font-weight: 600;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 @media (max-width: 768px) {
-  .admin-info {
+  .admin-layout {
     grid-template-columns: 1fr;
   }
-  
-  .admin-stats {
-    grid-template-columns: 1fr;
+
+  .admin-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 100;
+  }
+
+  .admin-nav-header h1 {
+    padding: 0;
+    border: none;
+  }
+
+  .admin-content {
+    padding: 20px;
+    padding-bottom: 80px;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 12px;
   }
 }
-</style> 
+</style>

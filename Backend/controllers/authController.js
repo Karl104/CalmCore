@@ -15,6 +15,7 @@ const authController = {
                 res.json({
                     status: 'success',
                     message: 'Login successful',
+                    token: 'user-token-here', // Add token here
                     user: {
                         id: rows[0].id,
                         name: rows[0].name,
@@ -117,4 +118,4 @@ const authController = {
     }
 };
 
-module.exports = authController; 
+module.exports = authController;

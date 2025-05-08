@@ -10,10 +10,10 @@ const router = createRouter({
   },
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/',
-      redirect: '/home'
-    },
+  {
+    path: '/',
+    redirect: '/home'
+  },
     {
       path: '/home',
       name: 'home',
@@ -62,24 +62,33 @@ const router = createRouter({
       name: 'admin',
       component: () => import('../views/AdminView.vue')
     },
+    {
+      path: '/admin-login',
+      name: 'admin-login',
+      component: () => import('../views/AdminLogin.vue')
+    },
   ],
 })
 
-// Global navigation guard
+// Update the public pages array in the navigation guard
 router.beforeEach((to, from, next) => {
-  const publicPages = ['/login', '/register', '/forget', '/admin']; // Paths that don't require authentication
+  const publicPages = ['/login', '/register', '/forget', '/admin-login'];
   const authRequired = !publicPages.includes(to.path);
   const loggedIn = localStorage.getItem('userToken');
+  const role = localStorage.getItem('userRole');
 
   if (authRequired && !loggedIn) {
-    next({ 
-      path: '/login',
-      query: { redirect: to.fullPath } // Store the path user tried to visit
-    });
+    next({ path: '/login', query: { redirect: to.fullPath } });
     return;
   }
 
-  next(); // Proceed to the route
+  // Prevent regular users from accessing /admin
+  if (to.path === '/admin' && role !== 'admin') {
+    next('/home');
+    return;
+  }
+
+  next();
 });
 
 export default router

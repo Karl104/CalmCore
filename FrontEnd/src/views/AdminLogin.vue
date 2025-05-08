@@ -1,17 +1,16 @@
 <template>
   <div class="login-page">
     <div class="welcome-section">
-      <h1>Welcome Back</h1>
-      <p>Log in to continue your journey with CalmCore.</p>
-
+      <h1>Welcome Back Admin</h1>
+      <p>Please login to access your dashboard</p>
     </div>
     <div class="login-section">
       <div class="login-container">
-        <h2>Login</h2>
-        <form @submit.prevent="handleLogin">
+        <h2>Admin Login</h2>
+        <form @submit.prevent="handleAdminLogin">
           <div class="form-group">
             <label for="email">Email:</label>
-            <input type="email" id="email" v-model="email" required placeholder="Enter your email">
+            <input type="email" id="email" v-model="email" required placeholder="Enter your admin email">
           </div>
           <div class="form-group">
             <label for="password">Password:</label>
@@ -24,13 +23,10 @@
           </div>
           <div class="action-links">
             <router-link to="/forget" class="forgot-password-link">Forgot Password?</router-link>
-            <router-link to="/admin-login" class="admin-link">Admin</router-link>
+            <router-link to="/login" class="user-login-link">User Login</router-link>
           </div>
-          <button type="submit" class="login-button">Login</button>
+          <button type="submit" class="login-button">Admin Login</button>
         </form>
-        <p class="register-link">
-          Don't have an account? <router-link to="/register">Register here</router-link>
-        </p>
       </div>
     </div>
   </div>
@@ -38,12 +34,12 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router'; // Import useRouter
+import { useRouter } from 'vue-router';
 
 const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
-const router = useRouter(); // Initialize router
+const router = useRouter();
 
 const passwordFieldType = computed(() => showPassword.value ? 'text' : 'password');
 
@@ -51,7 +47,7 @@ const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
 
-const handleLogin = async () => {
+const handleAdminLogin = async () => {
   try {
     const response = await fetch('http://localhost:3000/api/auth/login', {
       method: 'POST',
@@ -67,16 +63,15 @@ const handleLogin = async () => {
     const data = await response.json();
 
     if (data.status === 'success') {
-      localStorage.setItem('userToken', data.token);
-      localStorage.setItem('userRole', data.role);
-      
-      if (data.role === 'admin') {
+      if (data.user && data.user.role === 'admin') {
+        localStorage.setItem('userToken', data.token);
+        localStorage.setItem('userRole', data.user.role);
         router.push('/admin');
       } else {
-        router.push('/home');
+        alert('Access denied. This login is for administrators only.');
       }
     } else {
-      alert('Incorrect email or password. Please try again.');
+      alert('Invalid admin credentials. Please try again.');
     }
   } catch (error) {
     console.error('Login error:', error);
@@ -86,37 +81,35 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
 
 .login-page {
   display: flex;
   min-height: 100vh;
+  background-color: #f8fafc;
   font-family: 'Quicksand', sans-serif;
-  background-color: #f4f7f6; /* Light background for the page */
 }
 
 .welcome-section {
   flex: 1;
-  background-color: #5852c1; /* Example primary color */
+  background-color: #151515;
   color: white;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 40px;
-  text-align: center;
+  padding: 2rem;
 }
 
 .welcome-section h1 {
   font-size: 2.5rem;
   margin-bottom: 1rem;
-  font-weight: 600;
 }
 
 .welcome-section p {
-  font-size: 1.1rem;
-  max-width: 80%;
-  line-height: 1.6;
+  font-size: 1.2rem;
+  opacity: 0.8;
 }
 
 .login-section {
@@ -124,109 +117,59 @@ const handleLogin = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 40px;
+  padding: 2rem;
 }
 
 .login-container {
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
+  padding: 2rem;
   background-color: white;
-  padding: 30px 40px;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .login-container h2 {
+  text-align: center;
   margin-bottom: 2rem;
-  color: #333;
-  font-weight: 600;
+  color: #151515;
 }
 
 .form-group {
   margin-bottom: 1.5rem;
-  text-align: left;
 }
 
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #555;
-  font-size: 0.9rem;
-  font-weight: 500;
+  color: #151515;
 }
 
 .form-group input {
   width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-sizing: border-box;
-  font-family: 'Quicksand', sans-serif;
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
   font-size: 1rem;
+  transition: border-color 0.3s;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #6C63FF;
-  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.2);
-}
-
-.login-button {
-  width: 100%;
-  padding: 12px 15px;
-  background-color: #6C63FF;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
-  margin-top: 1rem;
-}
-
-.login-button:hover {
-  background-color: #574ed9;
-}
-
-.register-link {
-  margin-top: 1.5rem;
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.register-link a {
-  color: #6C63FF;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.register-link a:hover {
-  text-decoration: underline;
+  border-color: #151515;
 }
 
 .password-input-container {
   position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-input-container input {
-  flex-grow: 1;
-  padding-right: 40px; /* Make space for the icon */
 }
 
 .password-toggle-icon {
   position: absolute;
-  right: 10px;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
   cursor: pointer;
-  color: #888; /* Icon color */
-  font-size: 1.1rem;
-}
-
-.password-toggle-icon i {
-  vertical-align: middle;
+  color: #64748b;
 }
 
 .action-links {
@@ -237,46 +180,46 @@ const handleLogin = async () => {
 }
 
 .forgot-password-link,
-.admin-link {
-  color: #5852c1;
+.user-login-link {
+  color: #151515;
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9rem;
 }
 
 .forgot-password-link:hover,
-.admin-link:hover {
+.user-login-link:hover {
   text-decoration: underline;
 }
 
-.forgot-password-link a {
-  color: #6C63FF;
-  text-decoration: none;
+.login-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #151515;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
   font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.forgot-password-link a:hover {
-  text-decoration: underline;
+.login-button:hover {
+  background-color: #2d3748;
 }
 
-/* Font Awesome CDN link - ensure this is added to your index.html or main.js if not already present */
-/* For example, in index.html: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> */
-
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .login-page {
     flex-direction: column;
   }
+
   .welcome-section {
-    min-height: 30vh; /* Smaller height on mobile */
-    padding: 20px;
+    padding: 3rem 1rem;
   }
+
   .login-section {
-     padding: 20px;
-  }
-  .login-container {
-    padding: 20px;
-    box-shadow: none; /* Optional: remove shadow on smaller screens */
+    padding: 1rem;
   }
 }
 </style>

@@ -92,9 +92,11 @@ export default {
   },
   methods: {
     logout() {
-      localStorage.removeItem('loggedInUser');
-      this.$router.push('/login');
-    },
+      if (confirm('Are you sure you want to log out?')) {
+        localStorage.removeItem('loggedInUser');
+        this.$router.push('/login');
+      }
+    },  // Added missing comma here
     formatDateGroup(dateString) {
       const today = new Date().toDateString();
       const yesterday = new Date(Date.now() - 86400000).toDateString();
