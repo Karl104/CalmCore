@@ -97,9 +97,8 @@ const handleLogin = async () => {
     const data = await response.json();
 
     if (data.status === 'success') {
-      // Store the token instead of user data
       localStorage.setItem('userToken', data.token);
-      router.push('/'); // Redirect to home page
+      router.push('/home'); // Changed from '/' to '/home'
     } else {
       alert('Incorrect email or password. Please try again.');
     }
