@@ -67,7 +67,7 @@ import { RouterLink } from 'vue-router';
 export default {
   methods: {
     logout() {
-      localStorage.removeItem('loggedInUser');
+      localStorage.removeItem('userToken'); // Changed to match router guard
       this.$router.push('/login');
     }
   },

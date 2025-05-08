@@ -97,12 +97,11 @@ const handleLogin = async () => {
     const data = await response.json();
 
     if (data.status === 'success') {
-      console.log('Login successful for:', email.value);
-      localStorage.setItem('loggedInUser', JSON.stringify(data.user));
-      router.push('/'); // Redirect to home page or dashboard
+      // Store the token instead of user data
+      localStorage.setItem('userToken', data.token);
+      router.push('/'); // Redirect to home page
     } else {
-      console.log('Login failed for:', email.value);
-      alert(data.message || 'Invalid email or password. Please try again or register.');
+      alert('Incorrect email or password. Please try again.');
     }
   } catch (error) {
     console.error('Login error:', error);

@@ -63,13 +63,16 @@ const router = createRouter({
 
 // Global navigation guard
 router.beforeEach((to, from, next) => {
-  const publicPages = ['/login', '/register', '/forget','/admin']; // Paths that don't require authentication
+  const publicPages = ['/login', '/register', '/forget', '/admin']; // Paths that don't require authentication
   const authRequired = !publicPages.includes(to.path);
-  const loggedIn = localStorage.getItem('userToken'); // Check if user token exists
+  const loggedIn = localStorage.getItem('userToken');
 
   if (authRequired && !loggedIn) {
-    alert('You must be logged in to access this page. Redirecting to login.');
-    return next('/login');
+    next({ 
+      path: '/login',
+      query: { redirect: to.fullPath } // Store the path user tried to visit
+    });
+    return;
   }
 
   next(); // Proceed to the route
