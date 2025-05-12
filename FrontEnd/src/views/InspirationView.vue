@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <div class="sidebar">
+    <div v-if="sidebarVisible" class="sidebar">
       <h1 class="logo">CalmCore</h1>
 
       <nav class="nav-menu">
@@ -30,6 +30,13 @@
       </div>
     </div>
 
+    <button class="sidebar-toggle" @click="toggleSidebar">
+      <div class="hamburger" :class="{ 'is-active': sidebarVisible }">
+        <span class="line"></span>
+        <span class="line"></span>
+        <span class="line"></span>
+      </div>
+    </button>
     <div class="main-content">
       <div class="header">
         <div class="dropdown">
@@ -100,6 +107,7 @@ export default {
   },
   data() {
     return {
+      sidebarVisible: true, // Added for sidebar toggle
       currentQuoteIndex: 0,
       selectedCategory: 'All Quotes',
       isDropdownOpen: false,
@@ -488,9 +496,12 @@ export default {
       this.closeJournal(); // Close the modal
       this.$router.push('/history'); // Navigate to history page
     },  // Added comma here
+    toggleSidebar() { // Added for sidebar toggle
+      this.sidebarVisible = !this.sidebarVisible;
+    },
     logout() {
       if (confirm('Are you sure you want to log out?')) {
-        localStorage.removeItem('loggedInUser');
+        localStorage.removeItem('userToken'); // Corrected to userToken
         this.$router.push('/login');
       }
     }
@@ -528,7 +539,7 @@ export default {
 .logo {
   font-size: 1.8rem;
   margin-bottom: 3rem;
-  padding-left: 1rem;
+  padding-left: 3rem;
   color: white;
 }
 
@@ -591,6 +602,318 @@ export default {
   flex-direction: column;
   align-items: center;
   background-color: white;
+}
+
+.header {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 2rem;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  padding: 0.75rem 1.5rem;
+  background-color: #fff;
+  border-radius: 2rem;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+.dropdown-icon {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  transition: transform 0.3s;
+}
+
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.dropdown-item {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+.dropdown-item.active {
+  background-color: #000;
+  color: white;
+}
+
+.quote-card {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  background-color: white;
+  border-radius: 1.5rem;
+  padding: 3rem 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.quotation-mark {
+  font-size: 5rem;
+  color: #e0e0e0;
+  line-height: 1;
+  margin-bottom: 1rem;
+}
+
+.quote-content {
+  margin-bottom: 2.5rem;
+}
+
+.quote-text {
+  font-size: 1.5rem;
+  line-height: 1.5;
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.quote-author {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.quote-source {
+  font-size: 1rem;
+  color: #999;
+  font-style: italic;
+}
+
+.navigation-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.nav-button {
+  background-color: #f5f5f5;
+  border: none;
+  border-radius: 50%;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
+}
+
+.nav-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #e8e8e8;
+}
+
+.nav-icon {
+  font-size: 1rem;
+  color: #333;
+}
+
+.journal-button {
+  background-color: #121a2e;
+  color: white;
+  border: none;
+  border-radius: 2rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.journal-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.favorite-button {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.favorite-icon {
+  font-size: 1.5rem;
+  color: #ccc;
+  transition: color 0.3s;
+}
+
+.favorite-button:hover .favorite-icon {
+  color: #ffc107;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  position: relative;
+  width: 90%;
+  max-width: 700px; /* Adjust as needed */
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #aaa;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+/* Ensure Journal Editor styles work well within the modal */
+.modal-content .journal-editor {
+  margin-top: 1rem; /* Add some space below the close button */
+}
+
+/* Added for sidebar toggle - ensure these are not duplicated if already present from HomeView.vue */
+.sidebar-toggle {
+  background: #151515;
+  color: white;
+  border: none;
+  border-radius: 0px;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: 'Quicksand', sans-serif;
+  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 35px;
+  height: 35px;
+  position: fixed; /* Or fixed, depending on layout needs */
+  top: 20px; /* Adjust as needed */
+  left: 20px; /* Adjust as needed */
+  z-index: 1003; /* Ensure it's above other elements */
+}
+
+.sidebar-toggle:hover {
+  background: #333333;
+}
+
+.hamburger {
+  width: 18px;
+  height: 14px;
+  position: relative;
+  transform: rotate(0deg);
+  transition: .5s ease-in-out;
+  cursor: pointer;
+}
+
+.hamburger .line {
+  display: block;
+  position: absolute;
+  height: 2px;
+  width: 100%;
+  background: white;
+  border-radius: 9px;
+  opacity: 1;
+  left: 0;
+  transform: rotate(0deg);
+  transition: .25s ease-in-out;
+}
+
+.hamburger .line:nth-child(1) {
+  top: 0px;
+}
+
+.hamburger .line:nth-child(2) {
+  top: 7px;
+}
+
+.hamburger .line:nth-child(3) {
+  top: 14px;
+}
+
+.hamburger.is-active .line:nth-child(1) {
+  top: 7px;
+  transform: rotate(45deg);
+}
+
+.hamburger.is-active .line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.is-active .line:nth-child(3) {
+  top: 7px;
+  transform: rotate(-45deg);
+}
+
+/* Adjust main content padding if sidebar is fixed and toggle is outside */
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  padding-left: 4rem; /* Example: if toggle button takes space */
 }
 
 .header {

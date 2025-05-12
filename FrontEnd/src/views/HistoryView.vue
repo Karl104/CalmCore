@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard">
-    <div class="sidebar">
-      <h1 class="logo">CalmCore</h1>
+    <div v-if="sidebarVisible" class="sidebar">
+      <h1 class="logo">                CalmCore</h1>
 
       <nav class="nav-menu">
         <router-link to="/" class="nav-item">
@@ -30,6 +30,13 @@
       </div>
     </div>
 
+    <button class="sidebar-toggle" @click="toggleSidebar">
+      <div class="hamburger" :class="{ 'is-active': sidebarVisible }">
+        <span class="line"></span>
+        <span class="line"></span>
+        <span class="line"></span>
+      </div>
+    </button>
     <div class="main-content">
       <h2 class="section-title">History</h2>
       <div v-for="(group, date) in groupedHistory" :key="date" class="history-group">
@@ -64,7 +71,6 @@
 
 <script>
 import { RouterLink } from 'vue-router';
-// No need to import useRouter here as this.$router is available in Options API
 
 export default {
   name: 'HistoryView',
@@ -73,13 +79,18 @@ export default {
   },
   data() {
     return {
-      historyEntries: [] // Initialize as empty, will be fetched
+      historyEntries: [], 
+      sidebarVisible: true, // Added for sidebar toggle
     };
   },
   computed: {
     groupedHistory() {
       const groups = {};
-      const sortedEntries = [...this.historyEntries].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Create a sorted copy
+      // Ensure historyEntries is an array before trying to sort or iterate
+      if (!Array.isArray(this.historyEntries)) {
+        return {}; // Return empty object if not an array to prevent errors
+      }
+      const sortedEntries = [...this.historyEntries].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       sortedEntries.forEach(entry => {
         const date = new Date(entry.timestamp).toDateString();
         if (!groups[date]) {
@@ -91,28 +102,32 @@ export default {
     }
   },
   methods: {
+    toggleSidebar() { // Added for sidebar toggle
+      this.sidebarVisible = !this.sidebarVisible;
+    },
     logout() {
       if (confirm('Are you sure you want to log out?')) {
-        localStorage.removeItem('loggedInUser');
+        localStorage.removeItem('userToken'); 
         this.$router.push('/login');
       }
-    },  // Added missing comma here
+    },
     formatDateGroup(dateString) {
       const today = new Date().toDateString();
-      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      const yesterday = new Date(Date.now() - 86400000).toDateString(); // 24 * 60 * 60 * 1000 ms
       const entryDate = new Date(dateString);
 
       if (dateString === today) {
         return 'TODAY';
       }
       if (dateString === yesterday) {
-        const day = entryDate.toLocaleDateString('en-US', { day: '2-digit' });
-        const month = entryDate.toLocaleDateString('en-US', { month: '2-digit' });
+        // Format: YESTERDAY, DD.MM
+        const day = entryDate.toLocaleDateString('en-GB', { day: '2-digit' });
+        const month = entryDate.toLocaleDateString('en-GB', { month: '2-digit' });
         return `YESTERDAY, ${day}.${month}`;
       }
-      // Format for older dates (e.g., 04 MAY 2025)
-      const day = entryDate.toLocaleDateString('en-US', { day: '2-digit' });
-      const month = entryDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+      // Format: DD MMM YYYY (e.g., 01 JAN 2023)
+      const day = entryDate.toLocaleDateString('en-GB', { day: '2-digit' });
+      const month = entryDate.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
       const year = entryDate.getFullYear();
       return `${day} ${month} ${year}`;
     },
@@ -121,21 +136,28 @@ export default {
       return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
     },
     viewEntry(entry) {
-      // Placeholder for navigation logic
-      console.log('Navigate to entry:', entry);
+      // Placeholder for navigating to a detailed view or modal
+      console.log('View entry:', entry);
       // Example: this.$router.push({ name: 'EntryDetail', params: { id: entry.id } });
     },
     fetchHistory() {
+      // This is a placeholder. Replace with your actual data fetching logic (e.g., API call)
       const storedHistory = localStorage.getItem('calmCoreHistory');
       if (storedHistory) {
-        this.historyEntries = JSON.parse(storedHistory);
+        try {
+          this.historyEntries = JSON.parse(storedHistory);
+        } catch (e) {
+          console.error('Error parsing history from localStorage:', e);
+          this.historyEntries = []; // Reset to empty if parsing fails
+        }
       } else {
-        this.historyEntries = []; // Ensure it's an empty array if nothing is stored
+        // Initialize with empty array if no history is found
+        this.historyEntries = [];
       }
     }
   },
   mounted() {
-    this.fetchHistory(); // Fetch history when the component mounts
+    this.fetchHistory();
   }
 };
 </script>
@@ -171,7 +193,7 @@ export default {
 .logo {
   font-size: 1.8rem;
   margin-bottom: 3rem;
-  padding-left: 1rem;
+  padding-left: 3rem;
   color: white;
 }
 
@@ -331,4 +353,83 @@ export default {
   color: #a0aec0;
 }
 
+/* Added for sidebar toggle - ensure these are not duplicated if already present */
+.sidebar-toggle {
+  background: #151515;
+  color: white;
+  border: none;
+  border-radius: 0px;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: 'Quicksand', sans-serif;
+  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 35px;
+  height: 35px;
+  position: absolute; /* Or fixed, depending on layout needs */
+  top: 20px; /* Adjust as needed */
+  left: 20px; /* Adjust as needed */
+  z-index: 1003; /* Ensure it's above other elements */
+}
+
+.sidebar-toggle:hover {
+  background: #333333;
+}
+
+.hamburger {
+  width: 18px;
+  height: 14px;
+  position: relative;
+  transform: rotate(0deg);
+  transition: .5s ease-in-out;
+  cursor: pointer;
+}
+
+.hamburger .line {
+  display: block;
+  position: absolute;
+  height: 2px;
+  width: 100%;
+  background: white;
+  border-radius: 9px;
+  opacity: 1;
+  left: 0;
+  transform: rotate(0deg);
+  transition: .25s ease-in-out;
+}
+
+.hamburger .line:nth-child(1) {
+  top: 0px;
+}
+
+.hamburger .line:nth-child(2) {
+  top: 7px;
+}
+
+.hamburger .line:nth-child(3) {
+  top: 14px;
+}
+
+.hamburger.is-active .line:nth-child(1) {
+  top: 7px;
+  transform: rotate(45deg);
+}
+
+.hamburger.is-active .line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.is-active .line:nth-child(3) {
+  top: 7px;
+  transform: rotate(-45deg);
+}
+
+/* Adjust main content padding if sidebar is fixed and toggle is outside */
+.main-content {
+  /* ... existing styles ... */
+  padding-left: 4rem; /* Example: if toggle button takes space */
+}
 </style>

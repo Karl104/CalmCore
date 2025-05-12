@@ -45,7 +45,8 @@
         </div>
       </div>
 
-      <!-- Login History Table -->
+      <!-- Login History Table Removed -->
+      <!-- 
       <div class="admin-section">
         <div class="section-header">
           <h3>Login History</h3>
@@ -54,13 +55,15 @@
           <table class="admin-table">
             <thead>
               <tr>
+                <th>Name</th>
                 <th>Email</th>
                 <th>Action</th>
-                <th>Timestamp</th>
+                <th>Date & Time</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(history, index) in loginHistory" :key="index">
+                <td>{{ history.name }}</td>
                 <td>{{ history.email }}</td>
                 <td>{{ history.action }}</td>
                 <td>{{ formatDate(history.timestamp) }}</td>
@@ -69,6 +72,7 @@
           </table>
         </div>
       </div>
+      -->
 
       <!-- Add/Edit User Dialog -->
       <div v-if="openAddDialog" class="dialog-overlay">
@@ -130,7 +134,7 @@ export default {
   data() {
     return {
       users: [],
-      loginHistory: [],
+      // loginHistory: [], // Removed loginHistory data property
       openAddDialog: false,
       editingUser: null,
       newUser: {
@@ -149,11 +153,12 @@ export default {
   },
   created() {
     this.fetchUsers()
-    this.fetchLoginHistory()
+    // this.fetchLoginHistory() // Removed call to fetchLoginHistory
   },
   methods: {
     formatDate(dateString) {
-      return new Date(dateString).toLocaleString()
+      if (!dateString) return 'N/A'; 
+      return new Date(dateString).toLocaleString();
     },
     async fetchUsers() {
       try {
@@ -169,19 +174,70 @@ export default {
         this.error = 'Failed to fetch users'
       }
     },
+    // fetchLoginHistory method removed
+    /*
     async fetchLoginHistory() {
+      console.log('Attempting to fetch login history...');
       try {
+        const token = localStorage.getItem('userToken');
+        if (!token) {
+          console.error('No user token found. Cannot fetch login history.');
+          // this.loginHistory = []; // Already removed
+          this.error = 'Authentication token not found. Please log in again.';
+          return;
+        }
+
         const response = await fetch('http://localhost:3000/api/login-history', {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+            'Authorization': `Bearer ${token}`
           }
-        })
-        const data = await response.json()
-        this.loginHistory = data.history
+        });
+
+        console.log('Response status:', response.status);
+        const responseBody = await response.text(); 
+        console.log('Response body:', responseBody);
+
+        if (response.ok) {
+          try {
+            const data = JSON.parse(responseBody); 
+            console.log('Successfully fetched login history data:', data);
+            if (data && Array.isArray(data.history)) { 
+              // this.loginHistory = data.history; // Already removed
+              // if (this.loginHistory.length === 0) { // Already removed
+              // console.warn('Login history is empty.');
+              // }
+            } else if (data && Array.isArray(data.loginHistory)) { 
+              // this.loginHistory = data.loginHistory; // Already removed
+              //  if (this.loginHistory.length === 0) { // Already removed
+              //  console.warn('Login history is empty.');
+              // }
+            } else if (Array.isArray(data)) { 
+                // this.loginHistory = data; // Already removed
+                //  if (this.loginHistory.length === 0) { // Already removed
+                //  console.warn('Login history is empty.');
+                // }
+            }else {
+              console.error('Login history data is not in the expected format (expected an array in data.history, data.loginHistory, or data directly):', data);
+              // this.loginHistory = []; // Already removed
+            }
+          } catch (jsonError) {
+            console.error('Error parsing JSON response:', jsonError);
+            console.error('Response body that caused error:', responseBody);
+            // this.loginHistory = []; // Already removed
+            this.error = 'Failed to parse login history data from server.';
+          }
+        } else {
+          console.error('Error fetching login history. Status:', response.status, 'Response:', responseBody);
+          this.error = `Failed to fetch login history (Status: ${response.status}). Check console for details.`;
+          // this.loginHistory = [];  // Already removed
+        }
       } catch (error) {
-        console.error('Error fetching login history:', error)
+        console.error('Network or other error fetching login history:', error);
+        this.error = 'A network error occurred while fetching login history. Please check your connection and the API server.';
+        // this.loginHistory = []; // Already removed
       }
     },
+    */
     editUser(user) {
       this.editingUser = user
       this.newUser = {

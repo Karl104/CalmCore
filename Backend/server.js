@@ -4,6 +4,7 @@ const cors = require('cors');
 const { initializeDatabase } = require('./database/db');
 const userController = require('./controllers/userController');
 const authController = require('./controllers/authController');
+const loginHistoryRoutes = require('./routes/loginHistory'); // Added: Import login history routes
 
 const app = express();
 const port = 3000;
@@ -33,7 +34,10 @@ app.post('/api/users', userController.createUser);
 app.put('/api/users/:id', userController.updateUser);
 app.delete('/api/users/:id', userController.deleteUser);
 
+// Login History routes
+app.use('/api', loginHistoryRoutes); // Added: Mount login history routes
+
 // Start server
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
-}); 
+});

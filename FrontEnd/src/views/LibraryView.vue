@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <div class="sidebar">
+    <div v-if="sidebarVisible" class="sidebar">
       <h1 class="logo">CalmCore</h1>
 
       <nav class="nav-menu">
@@ -30,6 +30,13 @@
       </div>
     </div>
 
+    <button class="sidebar-toggle" @click="toggleSidebar">
+      <div class="hamburger" :class="{ 'is-active': sidebarVisible }">
+        <span class="line"></span>
+        <span class="line"></span>
+        <span class="line"></span>
+      </div>
+    </button>
     <div class="main-content">
       <h2 class="section-title">All Categories</h2>
       <div class="category-tabs">
@@ -79,6 +86,7 @@ export default {
   data() {
     return {
       selectedCategory: 'Productivity',
+      sidebarVisible: true, // Add this line
       categories: [
         { name: 'Productivity', icon: '⚙️' },
         { name: 'Happiness', icon: '☀️' },
@@ -113,9 +121,12 @@ export default {
     }
   },
   methods: {
+    toggleSidebar() { // Method to toggle sidebar visibility
+      this.sidebarVisible = !this.sidebarVisible;
+    },
     logout() {
       if (confirm('Are you sure you want to log out?')) {
-        localStorage.removeItem('loggedInUser');
+        localStorage.removeItem('userToken'); 
         this.$router.push('/login');
       }
     },
@@ -156,7 +167,7 @@ export default {
 .logo {
   font-size: 1.8rem;
   margin-bottom: 3rem;
-  padding-left: 1rem;
+  padding-left: 3rem; /* Fixed the typo here - removed the backslash */
   color: white;
 }
 
@@ -363,4 +374,86 @@ export default {
     color: #a0aec0;
 }
 
+/* Added for sidebar toggle - ensure these are not duplicated if already present */
+.sidebar-toggle {
+  background: #151515;
+  color: white;
+  border: none;
+  border-radius: 0px;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: 'Quicksand', sans-serif;
+  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 35px;
+  height: 35px;
+  position: absolute; /* Or fixed, depending on layout needs */
+  top: 20px; /* Adjust as needed */
+  left: 20px; /* Adjust as needed */
+  z-index: 1003; /* Ensure it's above other elements */
+}
+
+.sidebar-toggle:hover {
+  background: #333333;
+}
+
+.hamburger {
+  width: 18px;
+  height: 14px;
+  position: relative;
+  transform: rotate(0deg);
+  transition: .5s ease-in-out;
+  cursor: pointer;
+}
+
+.hamburger .line {
+  display: block;
+  position: absolute;
+  height: 2px;
+  width: 100%;
+  background: white;
+  border-radius: 9px;
+  opacity: 1;
+  left: 0;
+  transform: rotate(0deg);
+  transition: .25s ease-in-out;
+}
+
+.hamburger .line:nth-child(1) {
+  top: 0px;
+}
+
+.hamburger .line:nth-child(2) {
+  top: 7px;
+}
+
+.hamburger .line:nth-child(3) {
+  top: 14px;
+}
+
+.hamburger.is-active .line:nth-child(1) {
+  top: 7px;
+  transform: rotate(45deg);
+}
+
+.hamburger.is-active .line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.is-active .line:nth-child(3) {
+  top: 7px;
+  transform: rotate(-45deg);
+}
+
+/* Adjust main content padding if sidebar is fixed and toggle is outside */
+.main-content {
+  flex: 1;
+  padding: 2rem 3rem;
+  background-color: #000; /* Dark background */
+  color: white;
+  padding-left: 4rem; /* Example: if toggle button takes space */
+}
 </style>

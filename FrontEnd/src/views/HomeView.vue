@@ -35,12 +35,12 @@
       </div>
     </button>
     <div class="main-content">
-      <div class="date-display">{{ currentDate }}</div>
+      <div class="date-display" id="current-date"></div>
       <div class="content-area">
         <div class="book-icon">
           <img src="@/assets/gif.gif" alt="Animation" width="750" height="750">
         </div>
-        <h2 class="greeting">{{ greeting }}</h2>
+        <h2 class="greeting" id="greeting">Good evening</h2>
         <router-link to="/reflection" class="check-in-btn">Begin Your Check-In</router-link>
       </div>
       <div class="quote-section">
@@ -66,9 +66,7 @@ import { RouterLink } from 'vue-router';
 export default {
   data() {
     return {
-      sidebarVisible: true,
-      currentDate: '',
-      greeting: ''
+      sidebarVisible: true
     };
   },
   methods: {
@@ -80,33 +78,28 @@ export default {
         localStorage.removeItem('userToken');
         this.$router.push('/login');
       }
-    },
-    updateDateTime() {
+    }
+  },
+  components: {
+    RouterLink
+  },
+  mounted() {
+    function getCurrentDate() {
       const now = new Date();
       const day = now.getDate();
       const month = now.toLocaleDateString('en-US', { month: 'long' });
       const year = now.getFullYear();
       const weekday = now.toLocaleDateString('en-US', { weekday: 'long' });
-      this.currentDate = `${weekday}, ${month} ${day}, ${year}`;
-
-      const hour = now.getHours();
-      if (hour < 12) this.greeting = 'Good morning';
-      else if (hour < 18) this.greeting = 'Good afternoon';
-      else this.greeting = 'Good evening';
+      return `${weekday}, ${month} ${day}, ${year}`;
     }
-  },
-  mounted() {
-    this.updateDateTime();
-    // Update every minute
-    this.timer = setInterval(this.updateDateTime, 60000);
-  },
-  beforeDestroy() {
-    if (this.timer) {
-      clearInterval(this.timer);
+    function getGreeting() {
+      const hour = new Date().getHours();
+      if (hour < 12) return 'Good morning';
+      if (hour < 18) return 'Good afternoon';
+      return 'Good evening';
     }
-  },
-  components: {
-    RouterLink
+    document.getElementById('current-date').textContent = getCurrentDate();
+    document.getElementById('greeting').textContent = getGreeting();
   }
 }
 </script>
@@ -142,7 +135,7 @@ export default {
 .logo {
   font-size: 1.8rem;
   margin-bottom: 3rem;
-  padding-left: 1rem;
+  padding-left: 3rem;
   color: white;
 }
 
@@ -381,25 +374,19 @@ export default {
   justify-content: center;
   width: 35px;
   height: 35px;
-}
-
-.main-content {
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  background-color: white;
-  color: black;
-  min-height: calc(100vh - 70px); /* Adjust based on your top-bar height */
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1003;
 }
 
 .sidebar-toggle:hover {
-  background: #333333; /* Darker black on hover */
+  background: #333333;
 }
 
-/* Hamburger Menu Styles */
 .hamburger {
-  width: 18px; /* Smaller hamburger */
-  height: 14px; /* Smaller hamburger */
+  width: 18px;
+  height: 14px;
   position: relative;
   transform: rotate(0deg);
   transition: .5s ease-in-out;
@@ -431,7 +418,6 @@ export default {
   top: 14px;
 }
 
-/* X transformation when active */
 .hamburger.is-active .line:nth-child(1) {
   top: 7px;
   transform: rotate(45deg);
